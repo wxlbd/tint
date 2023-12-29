@@ -2,6 +2,7 @@ package log
 
 import (
 	"fmt"
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/lmittmann/tint"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"io"
@@ -13,11 +14,6 @@ import (
 )
 
 var levelVar = new(slog.LevelVar)
-
-type Logger struct {
-	*slog.Logger
-	Level *slog.LevelVar
-}
 
 var Level = map[string]slog.Level{
 	"INFO":  slog.LevelInfo,
@@ -89,8 +85,28 @@ var defaultOptions = &Options{
 	Compress:   true,
 }
 
+type Logger struct {
+	*slog.Logger
+}
+
+func (l *Logger) Log(level log.Level, args ...any) error {
+	switch level {
+	case log.LevelDebug:
+		l.Debug("", args...)
+	case log.LevelWarn:
+		l.Warn("", args...)
+	case log.LevelError:
+		l.Error("", args...)
+	case log.LevelInfo:
+		l.Info("", args...)
+	default:
+		l.Error("", args...)
+	}
+	return nil
+}
+
 // NewLogger 实例化日志
-func NewLogger(savePath string, opts ...Option) *slog.Logger {
+func NewLogger(savePath string, opts ...Option) *Logger {
 	options := defaultOptions
 	for _, opt := range opts {
 		opt(options)
@@ -119,7 +135,8 @@ func NewLogger(savePath string, opts ...Option) *slog.Logger {
 		NoColor:    noColor,
 		AddSource:  true,
 	}))
-	return logger
+
+	return &Logger{logger}
 }
 
 // SetLevel 设置日志级别
