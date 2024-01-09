@@ -5,6 +5,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/lmittmann/tint"
 	"gopkg.in/natefinch/lumberjack.v2"
+	"gorm.io/gorm/logger"
 	"io"
 	"log/slog"
 	"os"
@@ -23,13 +24,14 @@ var Level = map[string]slog.Level{
 }
 
 type Options struct {
-	Level      string
-	Dir        string
-	OutputType string // 日志消息输出类型，“控制台”或“文件”
-	MaxSize    int    // log file max size, MB
-	MaxBackups int    // log file max backups
-	MaxAge     int    // log file max age, days
-	Compress   bool   // log file compress
+	FilenamePrefix string // 日志文件前缀，文件名为 {FilenamePrefix}_{time}.log
+	Level          string
+	Filepath       string // 日志文件存放路径
+	OutputType     string // 日志消息输出类型，“控制台”或“文件”
+	MaxSize        int    // log file max size, MB
+	MaxBackups     int    // log file max backups
+	MaxAge         int    // log file max age, days
+	Compress       bool   // log file compress
 }
 
 type Option func(*Options)
@@ -87,26 +89,27 @@ var defaultOptions = &Options{
 
 type Logger struct {
 	*slog.Logger
+	gormLoggerConfig logger.Config
 }
 
 func (l *Logger) Log(level log.Level, args ...any) error {
 	switch level {
 	case log.LevelDebug:
-		l.Debug("", args...)
+		l.Logger.Debug("", args...)
 	case log.LevelWarn:
-		l.Warn("", args...)
+		l.Logger.Warn("", args...)
 	case log.LevelError:
-		l.Error("", args...)
+		l.Logger.Error("", args...)
 	case log.LevelInfo:
-		l.Info("", args...)
+		l.Logger.Info("", args...)
 	default:
-		l.Error("", args...)
+		l.Logger.Error("", args...)
 	}
 	return nil
 }
 
 // NewLogger 实例化日志
-func NewLogger(savePath string, opts ...Option) *Logger {
+func NewLogger(opts ...Option) *Logger {
 	options := defaultOptions
 	for _, opt := range opts {
 		opt(options)
@@ -118,7 +121,7 @@ func NewLogger(savePath string, opts ...Option) *Logger {
 	var writer io.Writer
 	if options.OutputType == "file" {
 		writer = &lumberjack.Logger{
-			Filename:   filepath.Join(options.Dir, fmt.Sprintf("%s.log", time.Now().Format(time.DateOnly))),
+			Filename:   filepath.Join(filepath.Clean(options.Filepath), fmt.Sprintf("%s_%s.log", options.FilenamePrefix, time.Now().Format(time.DateOnly))),
 			MaxSize:    options.MaxSize,    // 文件大小限制,单位MB
 			MaxBackups: options.MaxBackups, // 最大保留日志文件数量
 			MaxAge:     options.MaxAge,     // 日志文件保留天数
@@ -129,14 +132,14 @@ func NewLogger(savePath string, opts ...Option) *Logger {
 		writer = os.Stdout
 	}
 
-	logger := slog.New(tint.NewHandler(writer, &tint.Options{
+	l := slog.New(tint.NewHandler(writer, &tint.Options{
 		Level:      levelVar,
 		TimeFormat: time.DateTime,
 		NoColor:    noColor,
 		AddSource:  true,
 	}))
 
-	return &Logger{logger}
+	return &Logger{Logger: l}
 }
 
 // SetLevel 设置日志级别
