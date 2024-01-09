@@ -37,24 +37,24 @@ func (l *Logger) Trace(ctx context.Context, begin time.Time, fc func() (sql stri
 	case err != nil && l.gormLoggerConfig.LogLevel >= logger.Error && (!errors.Is(err, gorm.ErrRecordNotFound) || !l.gormLoggerConfig.IgnoreRecordNotFoundError):
 		sql, rows := fc()
 		if rows == -1 {
-			l.Logger.ErrorContext(ctx, err.Error(), slog.String("line", utils.FileWithLineNum()), slog.Float64("elapsed", float64(elapsed.Nanoseconds())/1e6), slog.String("sql", "-"))
+			l.Logger.ErrorContext(ctx, err.Error(), slog.String("line", utils.FileWithLineNum()), slog.String("elapsed", fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)), slog.String("sql", "-"))
 		} else {
-			l.Logger.ErrorContext(ctx, err.Error(), slog.String("line", utils.FileWithLineNum()), slog.Float64("elapsed", float64(elapsed.Nanoseconds())/1e6), slog.String("sql", sql))
+			l.Logger.ErrorContext(ctx, err.Error(), slog.String("line", utils.FileWithLineNum()), slog.String("elapsed", fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)), slog.String("sql", sql))
 		}
 	case elapsed > l.gormLoggerConfig.SlowThreshold && l.gormLoggerConfig.SlowThreshold != 0 && l.gormLoggerConfig.LogLevel >= logger.Warn:
 		sql, rows := fc()
 		slowLog := fmt.Sprintf("SLOW SQL >= %v", l.gormLoggerConfig.SlowThreshold)
 		if rows == -1 {
-			l.Logger.WarnContext(ctx, slowLog, slog.String("line", utils.FileWithLineNum()), slog.Float64("elapsed", float64(elapsed.Nanoseconds())/1e6), slog.String("sql", "-"))
+			l.Logger.WarnContext(ctx, slowLog, slog.String("line", utils.FileWithLineNum()), slog.String("elapsed", fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)), slog.String("sql", "-"))
 		} else {
-			l.Logger.WarnContext(ctx, slowLog, slog.String("line", utils.FileWithLineNum()), slog.Float64("elapsed", float64(elapsed.Nanoseconds())/1e6), slog.String("sql", sql))
+			l.Logger.WarnContext(ctx, slowLog, slog.String("line", utils.FileWithLineNum()), slog.String("elapsed", fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)), slog.String("sql", sql))
 		}
 	case l.gormLoggerConfig.LogLevel == logger.Info:
 		sql, rows := fc()
 		if rows == -1 {
-			l.Logger.InfoContext(ctx, "", slog.String("line", utils.FileWithLineNum()), slog.Float64("elapsed", float64(elapsed.Nanoseconds())/1e6), slog.String("sql", "-"))
+			l.Logger.InfoContext(ctx, "", slog.String("line", utils.FileWithLineNum()), slog.String("elapsed", fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)), slog.String("sql", "-"))
 		} else {
-			l.Logger.InfoContext(ctx, "", slog.String("line", utils.FileWithLineNum()), slog.Float64("elapsed", float64(elapsed.Nanoseconds())/1e6), slog.String("sql", sql))
+			l.Logger.InfoContext(ctx, "", slog.String("line", utils.FileWithLineNum()), slog.String("elapsed", fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)), slog.String("sql", sql))
 		}
 	}
 }
