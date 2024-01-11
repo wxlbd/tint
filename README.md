@@ -1,4 +1,4 @@
-# `tint`: 🌈 **slog.Handler** that writes tinted logs
+# `tint`: 🌈 **slog.Handler** 可以写入彩色的日志
 ![img.png](img.png)
 
 实现了一个 `slog.Handler`，可以写入着色的日志。
