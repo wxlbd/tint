@@ -136,29 +136,29 @@ type Handler struct {
 	noColor     bool
 }
 
-func (h *Handler) Log(ctx context.Context, level log.Level, msg string, args ...any) {
+func (h *Handler) Log(level log.Level, keyvals ...any) error {
 	var pcs [1]uintptr
 	runtime.Callers(4, pcs[:])
 	pc := pcs[0]
 	var r slog.Record
 	switch level {
 	case log.LevelDebug:
-		r = slog.NewRecord(time.Now(), slog.LevelDebug, msg, pc)
-		r.Add(args...)
+		r = slog.NewRecord(time.Now(), slog.LevelDebug, "", pc)
+		r.Add(keyvals...)
 	case log.LevelInfo:
-		r = slog.NewRecord(time.Now(), slog.LevelInfo, msg, pc)
-		r.Add(args...)
+		r = slog.NewRecord(time.Now(), slog.LevelInfo, "", pc)
+		r.Add(keyvals...)
 	case log.LevelWarn:
-		r = slog.NewRecord(time.Now(), slog.LevelWarn, msg, pc)
-		r.Add(args...)
+		r = slog.NewRecord(time.Now(), slog.LevelWarn, "", pc)
+		r.Add(keyvals...)
 	case log.LevelError:
-		r = slog.NewRecord(time.Now(), slog.LevelError, msg, pc)
-		r.Add(args...)
+		r = slog.NewRecord(time.Now(), slog.LevelError, "", pc)
+		r.Add(keyvals...)
 	case log.LevelFatal:
-		r = slog.NewRecord(time.Now(), slog.LevelError, msg, pc)
-		r.Add(args...)
+		r = slog.NewRecord(time.Now(), slog.LevelError, "", pc)
+		r.Add(keyvals...)
 	}
-	_ = h.Handle(ctx, r)
+	return h.Handle(context.TODO(), r)
 }
 
 func (h *Handler) LogMode(_ logger.LogLevel) logger.Interface {
