@@ -1,5 +1,5 @@
 /*
-Package log 实现了一个 [slog.Handler]，可以写入着色（colorized）的日志。
+Package tint 实现了一个 [slog.Handler]，可以写入着色（colorized）的日志。
 输出格式受 [zerolog.ConsoleWriter] 和 [slog.TextHandler] 的启发。
 
 可以通过 [Config] 自定义输出格式，它是[slog.HandlerOptions]的直接替代品。
@@ -34,7 +34,7 @@ Package log 实现了一个 [slog.Handler]，可以写入着色（colorized）�
 		}),
 	)
 */
-package log
+package tint
 
 import (
 	"context"
