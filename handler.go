@@ -40,6 +40,7 @@ import (
 	"context"
 	"encoding"
 	"fmt"
+	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm/logger"
 	"io"
 	"log/slog"
@@ -133,6 +134,31 @@ type Handler struct {
 	replaceAttr func([]string, slog.Attr) slog.Attr
 	timeFormat  string
 	noColor     bool
+}
+
+func (h *Handler) Log(ctx context.Context, level log.Level, msg string, args ...any) {
+	var pcs [1]uintptr
+	runtime.Callers(4, pcs[:])
+	pc := pcs[0]
+	var r slog.Record
+	switch level {
+	case log.LevelDebug:
+		r = slog.NewRecord(time.Now(), slog.LevelDebug, msg, pc)
+		r.Add(args...)
+	case log.LevelInfo:
+		r = slog.NewRecord(time.Now(), slog.LevelInfo, msg, pc)
+		r.Add(args...)
+	case log.LevelWarn:
+		r = slog.NewRecord(time.Now(), slog.LevelWarn, msg, pc)
+		r.Add(args...)
+	case log.LevelError:
+		r = slog.NewRecord(time.Now(), slog.LevelError, msg, pc)
+		r.Add(args...)
+	case log.LevelFatal:
+		r = slog.NewRecord(time.Now(), slog.LevelError, msg, pc)
+		r.Add(args...)
+	}
+	_ = h.Handle(ctx, r)
 }
 
 func (h *Handler) LogMode(_ logger.LogLevel) logger.Interface {
