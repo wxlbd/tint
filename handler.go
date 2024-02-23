@@ -184,7 +184,7 @@ func (h *Handler) Info(ctx context.Context, s string, i ...any) {
 func (h *Handler) Warn(ctx context.Context, s string, i ...interface{}) {
 	if h.Enabled(ctx, slog.LevelWarn) {
 		var pcs [1]uintptr
-		runtime.Callers(5 pcs[:])
+		runtime.Callers(5, pcs[:])
 		pc := pcs[0]
 		r := slog.NewRecord(time.Now(), slog.LevelInfo, "", pc)
 		r.AddAttrs(slog.String("msg", s))
