@@ -121,12 +121,6 @@ func NewHandler(w io.Writer, opts *Options) *Handler {
 	// 设置是否不使用颜色
 	h.noColor = opts.NoColor
 
-	// 设置跳过行数
-	if opts.Skip > 0 {
-		h.skip = opts.Skip
-	} else {
-		h.skip = 4
-	}
 	return h
 }
 
@@ -144,12 +138,11 @@ type Handler struct {
 	replaceAttr func([]string, slog.Attr) slog.Attr
 	timeFormat  string
 	noColor     bool
-	skip        int
 }
 
 func (h *Handler) Log(level log.Level, keyvals ...any) error {
 	var pcs [1]uintptr
-	runtime.Callers(4, pcs[:])
+	runtime.Callers(5, pcs[:])
 	pc := pcs[0]
 	var r slog.Record
 	switch level {
