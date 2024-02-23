@@ -90,6 +90,9 @@ type Options struct {
 
 	// 禁用颜色（默认值：false）
 	NoColor bool
+
+	// 跳过栈帧数（默认值：4）
+	Skip int
 }
 
 // NewHandler 使用默认选项将彩色日志写入Writer w的[slog.Handler]。如果opts为nil，则使用默认选项。
@@ -117,6 +120,13 @@ func NewHandler(w io.Writer, opts *Options) *Handler {
 	}
 	// 设置是否不使用颜色
 	h.noColor = opts.NoColor
+
+	// 设置跳过行数
+	if opts.Skip > 0 {
+		h.skip = opts.Skip
+	} else {
+		h.skip = 4
+	}
 	return h
 }
 
@@ -134,6 +144,7 @@ type Handler struct {
 	replaceAttr func([]string, slog.Attr) slog.Attr
 	timeFormat  string
 	noColor     bool
+	skip        int
 }
 
 func (h *Handler) Log(level log.Level, keyvals ...any) error {
