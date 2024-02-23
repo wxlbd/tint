@@ -140,7 +140,7 @@ type Handler struct {
 	noColor     bool
 }
 
-func (h *Handler) Log(level log.Level, keyvals ...any) error {
+func (h *Handler) Log(level log.Level, keyAndValues ...any) error {
 	var pcs [1]uintptr
 	runtime.Callers(5, pcs[:])
 	pc := pcs[0]
@@ -148,19 +148,19 @@ func (h *Handler) Log(level log.Level, keyvals ...any) error {
 	switch level {
 	case log.LevelDebug:
 		r = slog.NewRecord(time.Now(), slog.LevelDebug, "", pc)
-		r.Add(keyvals...)
+		r.Add(keyAndValues...)
 	case log.LevelInfo:
 		r = slog.NewRecord(time.Now(), slog.LevelInfo, "", pc)
-		r.Add(keyvals...)
+		r.Add(keyAndValues...)
 	case log.LevelWarn:
 		r = slog.NewRecord(time.Now(), slog.LevelWarn, "", pc)
-		r.Add(keyvals...)
+		r.Add(keyAndValues...)
 	case log.LevelError:
 		r = slog.NewRecord(time.Now(), slog.LevelError, "", pc)
-		r.Add(keyvals...)
+		r.Add(keyAndValues...)
 	case log.LevelFatal:
 		r = slog.NewRecord(time.Now(), slog.LevelError, "", pc)
-		r.Add(keyvals...)
+		r.Add(keyAndValues...)
 	}
 	return h.Handle(context.TODO(), r)
 }
@@ -172,7 +172,7 @@ func (h *Handler) LogMode(_ logger.LogLevel) logger.Interface {
 func (h *Handler) Info(ctx context.Context, s string, i ...any) {
 	if h.Enabled(ctx, slog.LevelInfo) {
 		var pcs [1]uintptr
-		runtime.Callers(4, pcs[:])
+		runtime.Callers(5, pcs[:])
 		pc := pcs[0]
 		r := slog.NewRecord(time.Now(), slog.LevelInfo, "", pc)
 		r.AddAttrs(slog.String("msg", s))
@@ -184,7 +184,7 @@ func (h *Handler) Info(ctx context.Context, s string, i ...any) {
 func (h *Handler) Warn(ctx context.Context, s string, i ...interface{}) {
 	if h.Enabled(ctx, slog.LevelWarn) {
 		var pcs [1]uintptr
-		runtime.Callers(4, pcs[:])
+		runtime.Callers(5 pcs[:])
 		pc := pcs[0]
 		r := slog.NewRecord(time.Now(), slog.LevelInfo, "", pc)
 		r.AddAttrs(slog.String("msg", s))
@@ -196,7 +196,7 @@ func (h *Handler) Warn(ctx context.Context, s string, i ...interface{}) {
 func (h *Handler) Error(ctx context.Context, s string, i ...interface{}) {
 	if h.Enabled(ctx, slog.LevelError) {
 		var pcs [1]uintptr
-		runtime.Callers(4, pcs[:])
+		runtime.Callers(5, pcs[:])
 		pc := pcs[0]
 		r := slog.NewRecord(time.Now(), slog.LevelInfo, "", pc)
 		r.AddAttrs(slog.String("msg", s))
@@ -208,7 +208,7 @@ func (h *Handler) Error(ctx context.Context, s string, i ...interface{}) {
 func (h *Handler) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
 	if h.Enabled(ctx, slog.LevelInfo) {
 		var pcs [1]uintptr
-		runtime.Callers(4, pcs[:])
+		runtime.Callers(5, pcs[:])
 		pc := pcs[0]
 		r := slog.NewRecord(time.Now(), slog.LevelInfo, "", pc)
 		sql, rows := fc()
