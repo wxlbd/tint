@@ -27,7 +27,8 @@ func NewLogger(writer io.Writer, level slog.Level) *Logger {
 		Level:      level,
 	})
 	return &Logger{
-		Logger: slog.New(h),
+		Logger:  slog.New(h),
+		Handler: h,
 	}
 }
 
