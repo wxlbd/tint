@@ -40,8 +40,6 @@ import (
 	"context"
 	"encoding"
 	"fmt"
-	"github.com/go-kratos/kratos/v2/log"
-	"gorm.io/gorm/logger"
 	"io"
 	"log/slog"
 	"path/filepath"
@@ -120,7 +118,6 @@ func NewHandler(w io.Writer, opts *Options) *Handler {
 	}
 	// 设置是否不使用颜色
 	h.noColor = opts.NoColor
-
 	return h
 }
 
@@ -138,97 +135,6 @@ type Handler struct {
 	replaceAttr func([]string, slog.Attr) slog.Attr
 	timeFormat  string
 	noColor     bool
-}
-
-func (h *Handler) Log(level log.Level, keyAndValues ...any) error {
-	var pcs [1]uintptr
-	runtime.Callers(5, pcs[:])
-	pc := pcs[0]
-	var r slog.Record
-	switch level {
-	case log.LevelDebug:
-		r = slog.NewRecord(time.Now(), slog.LevelDebug, "", pc)
-		r.Add(keyAndValues...)
-	case log.LevelInfo:
-		r = slog.NewRecord(time.Now(), slog.LevelInfo, "", pc)
-		r.Add(keyAndValues...)
-	case log.LevelWarn:
-		r = slog.NewRecord(time.Now(), slog.LevelWarn, "", pc)
-		r.Add(keyAndValues...)
-	case log.LevelError:
-		r = slog.NewRecord(time.Now(), slog.LevelError, "", pc)
-		r.Add(keyAndValues...)
-	case log.LevelFatal:
-		r = slog.NewRecord(time.Now(), slog.LevelError, "", pc)
-		r.Add(keyAndValues...)
-	}
-	return h.Handle(context.TODO(), r)
-}
-
-func (h *Handler) LogMode(_ logger.LogLevel) logger.Interface {
-	return h
-}
-
-func (h *Handler) Info(ctx context.Context, s string, i ...any) {
-	if h.Enabled(ctx, slog.LevelInfo) {
-		var pcs [1]uintptr
-		runtime.Callers(5, pcs[:])
-		pc := pcs[0]
-		r := slog.NewRecord(time.Now(), slog.LevelInfo, "", pc)
-		r.AddAttrs(slog.String("msg", s))
-		r.Add(i...)
-		_ = h.Handle(ctx, r)
-	}
-}
-
-func (h *Handler) Warn(ctx context.Context, s string, i ...interface{}) {
-	if h.Enabled(ctx, slog.LevelWarn) {
-		var pcs [1]uintptr
-		runtime.Callers(5, pcs[:])
-		pc := pcs[0]
-		r := slog.NewRecord(time.Now(), slog.LevelInfo, "", pc)
-		r.AddAttrs(slog.String("msg", s))
-		r.Add(i...)
-		_ = h.Handle(ctx, r)
-	}
-}
-
-func (h *Handler) Error(ctx context.Context, s string, i ...interface{}) {
-	if h.Enabled(ctx, slog.LevelError) {
-		var pcs [1]uintptr
-		runtime.Callers(5, pcs[:])
-		pc := pcs[0]
-		r := slog.NewRecord(time.Now(), slog.LevelInfo, "", pc)
-		r.AddAttrs(slog.String("msg", s))
-		r.Add(i...)
-		_ = h.Handle(ctx, r)
-	}
-}
-
-func (h *Handler) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
-	if h.Enabled(ctx, slog.LevelInfo) {
-		var pcs [1]uintptr
-		runtime.Callers(5, pcs[:])
-		pc := pcs[0]
-		r := slog.NewRecord(time.Now(), slog.LevelInfo, "", pc)
-		sql, rows := fc()
-		elapsed := time.Since(begin)
-		if err != nil {
-			r.AddAttrs(Err(err))
-		}
-		if rows == -1 {
-			r.AddAttrs(
-				slog.String("time", fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)),
-				slog.String("sql", "-"),
-			)
-		} else {
-			r.AddAttrs(
-				slog.String("time", fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)),
-				slog.String("sql", sql),
-			)
-		}
-		_ = h.Handle(ctx, r)
-	}
 }
 
 func (h *Handler) clone() *Handler {
